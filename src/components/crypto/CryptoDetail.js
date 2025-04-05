@@ -25,15 +25,15 @@ export default function CryptoDetail({ crypto }) {
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h2 className="text-2xl font-bold">{crypto.name} ({crypto.symbol})</h2>
-          <p className="text-gray-600">Rank: #{crypto.rank}</p>
+          <h2 className="text-2xl font-bold text-black">{crypto.name} ({crypto.symbol})</h2>
+          <p className="text-black">Rank: #{crypto.rank}</p>
         </div>
         <button 
           onClick={handleFavorite}
-          className="text-gray-400 hover:text-red-500 focus:outline-none"
+          className="text-black hover:text-red-500 focus:outline-none"
           aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
         >
-          <HeartIcon className={`h-8 w-8 ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-300'}`} />
+          <HeartIcon className={`h-8 w-8 ${isFavorite ? 'text-red-500 fill-current' : 'text-black'}`} />
         </button>
       </div>
 
@@ -42,16 +42,16 @@ export default function CryptoDetail({ crypto }) {
           <div className="flex items-center">
             <CurrencyDollarIcon className="h-6 w-6 text-blue-500 mr-2" />
             <div>
-              <p className="text-gray-500">Price</p>
-              <p className="text-3xl font-bold">${price}</p>
+              <p className="text-black">Price</p>
+              <p className="text-3xl font-bold text-black">${price}</p>
             </div>
           </div>
 
           <div className="flex items-center">
             <ChartBarIcon className="h-6 w-6 text-blue-500 mr-2" />
             <div>
-              <p className="text-gray-500">Market Cap</p>
-              <p className="text-xl">${marketCap}B</p>
+              <p className="text-black">Market Cap</p>
+              <p className="text-xl text-black">${marketCap}B</p>
             </div>
           </div>
         </div>
@@ -60,8 +60,8 @@ export default function CryptoDetail({ crypto }) {
           <div className="flex items-center">
             <ArrowsUpDownIcon className="h-6 w-6 text-blue-500 mr-2" />
             <div>
-              <p className="text-gray-500">24h Volume</p>
-              <p className="text-xl">${volume}B</p>
+              <p className="text-black">24h Volume</p>
+              <p className="text-xl text-black">${volume}B</p>
             </div>
           </div>
 
@@ -72,7 +72,7 @@ export default function CryptoDetail({ crypto }) {
               <ArrowDownIcon className="h-6 w-6 text-red-500 mr-2" />
             )}
             <div>
-              <p className="text-gray-500">24h Change</p>
+              <p className="text-black">24h Change</p>
               <p className={`text-xl ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
                 {change24h}%
               </p>
