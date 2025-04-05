@@ -1,113 +1,158 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+import { useEffect } from 'react'
+import { useAppDispatch, useAppSelector } from '../redux/hooks'
+import { getCryptoData } from '../redux/features/cryptoSlice'
+import { getWeatherData } from '../redux/features/weatherSlice'
+import { getNewsData } from '../redux/features/newsSlice'
+import { setupWebSocket } from '../services/websocketService'
+import Layout from '../components/common/Layout'
+import {
+  SunIcon,
+  CloudIcon,
+  BoltIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  NewspaperIcon,
+  ChartBarIcon
+} from '@heroicons/react/24/solid'
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+export default function Dashboard() {
+  const dispatch = useAppDispatch()
+  const { data: cryptoData } = useAppSelector(state => state.crypto)
+  const { data: weatherData } = useAppSelector(state => state.weather)
+  const { data: newsData } = useAppSelector(state => state.news)
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+  useEffect(() => {
+    dispatch(getCryptoData())
+    dispatch(getWeatherData())
+    dispatch(getNewsData())
+    const cleanup = setupWebSocket(dispatch)
+    return () => cleanup()
+  }, [dispatch])
 
-export default function Home() {
+  const getWeatherIcon = (condition) => {
+    switch(condition.toLowerCase()) {
+      case 'clear': return <SunIcon className="h-8 w-8 text-yellow-500" />
+      case 'clouds': return <CloudIcon className="h-8 w-8 text-gray-400" />
+      case 'rain': 
+      case 'drizzle': return <BoltIcon className="h-8 w-8 text-blue-400" />
+      default: return <SunIcon className="h-8 w-8 text-yellow-500" />
+    }
+  }
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/pages/index.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <Layout>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-gray-800 mb-8">Market Dashboard</h1>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Weather Section */}
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-lg p-6 border border-blue-200">
+            <div className="flex items-center mb-6">
+              <SunIcon className="h-6 w-6 text-blue-600 mr-2" />
+              <h2 className="text-xl font-semibold text-gray-800">Global Weather</h2>
+            </div>
+            
+            <div className="space-y-4">
+              {weatherData?.map(city => (
+                <div key={city.id} className="bg-white rounded-lg p-4 shadow hover:shadow-md transition-shadow border border-gray-200">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-800">{city.name}</h3>
+                      <p className="text-sm text-gray-600 capitalize">{city.weather[0].description}</p>
+                    </div>
+                    {getWeatherIcon(city.weather[0].main)}
+                  </div>
+                  
+                  <div className="mt-4 flex items-center justify-between">
+                    <div className="flex items-center">
+                      <span className="text-3xl font-bold text-gray-800">
+                        {Math.round(city.main.temp)}°C
+                      </span>
+                    </div>
+                    
+                    <div className="text-right space-y-1">
+                      <div className="flex items-center text-sm">
+                        <span className="text-gray-500 mr-1">Humidity:</span>
+                        <span className="font-medium text-gray-700">{city.main.humidity}%</span>
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <span className="text-gray-500 mr-1">Wind:</span>
+                        <span className="font-medium text-gray-700">{city.wind.speed} m/s</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Crypto Section */}
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-lg p-6 border border-purple-200">
+            <div className="flex items-center mb-6">
+              <ChartBarIcon className="h-6 w-6 text-purple-600 mr-2" />
+              <h2 className="text-xl font-semibold text-gray-800">Cryptocurrencies</h2>
+            </div>
+            
+            <div className="space-y-4">
+              {cryptoData?.map(crypto => {
+                const change24h = parseFloat(crypto.changePercent24Hr).toFixed(2)
+                const isPositive = change24h >= 0
+                const price = parseFloat(crypto.priceUsd).toFixed(2)
+                const marketCap = (parseFloat(crypto.marketCapUsd) / 1000000000).toFixed(2)
+                
+                return (
+                  <div key={crypto.id} className="bg-white rounded-lg p-4 shadow hover:shadow-md transition-shadow border border-gray-200">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="text-lg font-medium text-gray-800">{crypto.name}</h3>
+                        <p className="text-sm text-gray-600">{crypto.symbol}</p>
+                      </div>
+                      <span className="text-lg font-bold text-gray-800">${price}</span>
+                    </div>
+                    
+                    <div className="mt-4 flex items-center justify-between">
+                      <div className={`flex items-center ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                        {isPositive ? (
+                          <ArrowUpIcon className="h-5 w-5 mr-1" />
+                        ) : (
+                          <ArrowDownIcon className="h-5 w-5 mr-1" />
+                        )}
+                        <span>{Math.abs(change24h)}%</span>
+                      </div>
+                      
+                      <div className="text-right">
+                        <p className="text-sm text-gray-500">Market Cap</p>
+                        <p className="text-sm font-medium text-gray-700">${marketCap}B</p>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+          
+          {/* News Section */}
+          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-lg p-6 border border-green-200">
+            <div className="flex items-center mb-6">
+              <NewspaperIcon className="h-6 w-6 text-green-600 mr-2" />
+              <h2 className="text-xl font-semibold text-gray-800">Latest News</h2>
+            </div>
+            
+            <div className="space-y-4">
+              {newsData?.slice(0, 5).map((news, index) => (
+                <div key={index} className="bg-white rounded-lg p-4 shadow hover:shadow-md transition-shadow border border-gray-200">
+                  <h3 className="text-md font-medium text-gray-800 mb-2">{news.title}</h3>
+                  <p className="text-sm text-gray-600 mb-3">{news.description}</p>
+                  <div className="flex justify-between items-center text-xs text-gray-400">
+                    <span>{news.source_id || 'Unknown Source'}</span>
+                    <span>{new Date(news.pubDate).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+      </div>
+    </Layout>
+  )
 }
